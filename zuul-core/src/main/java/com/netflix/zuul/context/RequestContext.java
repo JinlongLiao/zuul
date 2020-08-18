@@ -49,10 +49,15 @@ import com.netflix.zuul.util.DeepCopy;
  * The RequestContext lives for the duration of the request and is ThreadLocal.
  * extensions of RequestContext can be substituted by setting the contextClass.
  * Most methods here are convenience wrapper methods; the RequestContext is an extension of a ConcurrentHashMap
+ * <br/>
+ * RequestContext 保存请求，响应，状态信息和数据，供ZuulFilters访问和共享。
+ * RequestContext在请求期间有效，并且为ThreadLocal。
+ * RequestContext的扩展可以通过设置contextClass来代替。
+ * 这里的大多数方法是便捷包装方法； RequestContext是ConcurrentHashMap的扩展
  *
  * @author Mikey Cohen
- *         Date: 10/13/11
- *         Time: 10:21 AM
+ * Date: 10/13/11
+ * Time: 10:21 AM
  */
 public class RequestContext extends ConcurrentHashMap<String, Object> {
 
@@ -80,6 +85,7 @@ public class RequestContext extends ConcurrentHashMap<String, Object> {
 
     /**
      * Override the default RequestContext
+     * 覆盖 默认的RequestContext 实现自定义的某种操作
      *
      * @param clazz
      */
@@ -89,6 +95,8 @@ public class RequestContext extends ConcurrentHashMap<String, Object> {
 
     /**
      * set an overriden "test" context
+     * 覆盖 默认的test RequestContext 实现自定义的某种操作
+     * 其实 默认test 本为null， 起作用是测试使用 ，其优先级为最高，当test存在时 RequestContext 无效
      *
      * @param context
      */
@@ -98,11 +106,14 @@ public class RequestContext extends ConcurrentHashMap<String, Object> {
 
     /**
      * Get the current RequestContext
+     * 获取当前的RequestContext test》RequestContext
      *
      * @return the current RequestContext
      */
     public static RequestContext getCurrentContext() {
-        if (testContext != null) return testContext;
+        if (testContext != null) {
+            return testContext;
+        }
 
         RequestContext context = threadLocal.get();
         return context;
@@ -110,6 +121,7 @@ public class RequestContext extends ConcurrentHashMap<String, Object> {
 
     /**
      * Convenience method to return a boolean value for a given key
+     * 强转 Map 中的Value 为Boolean ，尽在严格遵守相关契约时 才正常
      *
      * @param key
      * @return true or false depending what was set. default is false
@@ -120,6 +132,7 @@ public class RequestContext extends ConcurrentHashMap<String, Object> {
 
     /**
      * Convenience method to return a boolean value for a given key
+     * 强转 Map 中的Value 为Boolean ，尽在严格遵守相关契约时 才正常，不存在时 使用默认值
      *
      * @param key
      * @param defaultResponse
@@ -135,6 +148,7 @@ public class RequestContext extends ConcurrentHashMap<String, Object> {
 
     /**
      * sets a key value to Boolen.TRUE
+     * 保存
      *
      * @param key
      */
@@ -149,12 +163,16 @@ public class RequestContext extends ConcurrentHashMap<String, Object> {
      * @param value
      */
     public void set(String key, Object value) {
-        if (value != null) put(key, value);
-        else remove(key);
+        if (value != null) {
+            put(key, value);
+        } else {
+            remove(key);
+        }
     }
 
     /**
-     * true if  zuulEngineRan
+     * true if  zuulEngineRan(Zuul引擎运行)
+     * 获取是否使用Zuul,因为使用 ThreadLocal 保存，故每个线程 互不影响，但也从此可以看出 Zuul 1.*，的BIO 的 的相关特征，每个访问 有自己的 线程
      *
      * @return
      */
@@ -170,6 +188,8 @@ public class RequestContext extends ConcurrentHashMap<String, Object> {
     }
 
     /**
+     * 将 HttpServletRequest 保存到 本线程的缓存中
+     *
      * @return the HttpServletRequest from the "request" key
      */
     public HttpServletRequest getRequest() {
@@ -194,6 +214,7 @@ public class RequestContext extends ConcurrentHashMap<String, Object> {
 
     /**
      * sets the "response" key to the HttpServletResponse passed in
+     * 将 HttpServletResponse 保存到 本线程的缓存中
      *
      * @param response
      */
@@ -203,6 +224,7 @@ public class RequestContext extends ConcurrentHashMap<String, Object> {
 
     /**
      * returns a set throwable
+     * 获取本线程中的 错误信息
      *
      * @return a set throwable
      */
@@ -213,6 +235,7 @@ public class RequestContext extends ConcurrentHashMap<String, Object> {
 
     /**
      * sets a throwable
+     * 设置本线程中的 错误信息
      *
      * @param th
      */
@@ -298,15 +321,15 @@ public class RequestContext extends ConcurrentHashMap<String, Object> {
     /**
      * appends filter name and status to the filter execution history for the
      * current request
-     * 
+     *
      * @param name   filter name
      * @param status execution status
      * @param time   execution time in milliseconds
      */
     public void addFilterExecutionSummary(String name, String status, long time) {
-            StringBuilder sb = getFilterExecutionSummary();
-            if (sb.length() > 0) sb.append(", ");
-            sb.append(name).append('[').append(status).append(']').append('[').append(time).append("ms]");
+        StringBuilder sb = getFilterExecutionSummary();
+        if (sb.length() > 0) sb.append(", ");
+        sb.append(name).append('[').append(status).append(']').append('[').append(time).append("ms]");
     }
 
     /**
@@ -318,7 +341,7 @@ public class RequestContext extends ConcurrentHashMap<String, Object> {
         }
         return (StringBuilder) get("executedFilters");
     }
-    
+
     /**
      * sets the "responseBody" value as a String. This is the response sent back to the client.
      *
@@ -346,6 +369,7 @@ public class RequestContext extends ConcurrentHashMap<String, Object> {
 
     /**
      * sets the flag responseGZipped if the response is gzipped
+     * 设置响应 使用 gzip 压缩
      *
      * @param gzipped
      */
@@ -522,6 +546,8 @@ public class RequestContext extends ConcurrentHashMap<String, Object> {
     }
 
     /**
+     * 查看请求头中是否使用 gzip 压缩
+     *
      * @return true is the client request can accept gzip encoding. Checks the "accept-encoding" header
      */
     public boolean isGzipRequested() {
@@ -531,6 +557,7 @@ public class RequestContext extends ConcurrentHashMap<String, Object> {
 
     /**
      * unsets the threadLocal context. Done at the end of the request.
+     * 释放 线程中所有缓存
      */
     public void unset() {
         threadLocal.remove();
@@ -538,8 +565,9 @@ public class RequestContext extends ConcurrentHashMap<String, Object> {
 
     /**
      * Mkaes a copy of the RequestContext. This is used for debugging.
+     * 深克隆
      *
-     * @return
+     * @return RequestContext
      */
     public RequestContext copy() {
         RequestContext copy = new RequestContext();
@@ -567,7 +595,9 @@ public class RequestContext extends ConcurrentHashMap<String, Object> {
     }
 
     /**
-     * @return Map<String, List<String>>  of the request Query Parameters
+     * 获取本次请求的 参数
+     *
+     * @return Map<String, List < String>>  of the request Query Parameters
      */
     public Map<String, List<String>> getRequestQueryParams() {
         return (Map<String, List<String>>) get("requestQueryParams");
@@ -575,6 +605,7 @@ public class RequestContext extends ConcurrentHashMap<String, Object> {
 
     /**
      * sets the request query params list
+     * 请求参数写入 本线程缓存中
      *
      * @param qp Map<String, List<String>> qp
      */

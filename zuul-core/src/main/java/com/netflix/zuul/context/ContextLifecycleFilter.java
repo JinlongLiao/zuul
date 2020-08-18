@@ -30,15 +30,23 @@ import java.io.IOException;
  */
 public class ContextLifecycleFilter implements Filter {
 
-    public void destroy() {}
+    @Override
+    public void destroy() {
+    }
 
-    public void init(FilterConfig filterConfig) throws ServletException {}
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+    }
 
+    @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
-        throws IOException, ServletException {
+            throws IOException, ServletException {
         try {
             chain.doFilter(req, res);
         } finally {
+            /**
+             * 避免内存泄露，但从未使用的话会导致 RequestContext白白创建 然后销毁
+             */
             RequestContext.getCurrentContext().unset();
         }
     }
