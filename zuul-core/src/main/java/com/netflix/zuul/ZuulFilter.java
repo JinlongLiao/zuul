@@ -130,6 +130,7 @@ public abstract class ZuulFilter implements IZuulFilter, Comparable<ZuulFilter> 
         return zr;
     }
 
+    @Override
     public int compareTo(ZuulFilter filter) {
         return Integer.compare(this.filterOrder(), filter.filterOrder());
     }
@@ -188,10 +189,12 @@ public abstract class ZuulFilter implements IZuulFilter, Comparable<ZuulFilter> 
                     return 0;
                 }
 
+                @Override
                 public boolean shouldFilter() {
                     return false;
                 }
 
+                @Override
                 public Object run() {
                     return null;
                 }
@@ -228,14 +231,17 @@ public abstract class ZuulFilter implements IZuulFilter, Comparable<ZuulFilter> 
                     return 0;
                 }
 
+                @Override
                 public boolean isFilterDisabled() {
                     return false;
                 }
 
+                @Override
                 public boolean shouldFilter() {
                     return true;
                 }
 
+                @Override
                 public Object run() {
                     return null;
                 }

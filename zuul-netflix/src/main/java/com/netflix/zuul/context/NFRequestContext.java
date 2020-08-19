@@ -35,8 +35,8 @@ import static org.junit.Assert.assertNotNull;
  * Extended RequestContext adding Netflix library specific concepts and data
  *
  * @author Mikey Cohen
- *         Date: 12/23/11
- *         Time: 1:14 PM
+ * Date: 12/23/11
+ * Time: 1:14 PM
  */
 public class NFRequestContext extends RequestContext {
 
@@ -45,7 +45,6 @@ public class NFRequestContext extends RequestContext {
 
     static {
         RequestContext.setContextClass(NFRequestContext.class);
-
     }
 
     /**

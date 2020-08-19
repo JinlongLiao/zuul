@@ -21,12 +21,18 @@ import com.netflix.zuul.filters.FilterRegistry;
 import com.netflix.zuul.groovy.GroovyCompiler;
 import com.netflix.zuul.groovy.GroovyFileFilter;
 import com.netflix.zuul.monitoring.MonitoringHelper;
+
 import java.io.File;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 这对Servlet 环境 定制
+ * 从此看出 Zuul 1.* 基于JavaServlet,而通常为BIO 的网络通信模型
+ */
 public class StartServer implements ServletContextListener {
 
     private static final Logger logger = LoggerFactory.getLogger(StartServer.class);
@@ -36,12 +42,15 @@ public class StartServer implements ServletContextListener {
         logger.info("starting server");
 
         // mocks monitoring infrastructure as we don't need it for this simple app
+        // 模拟监视基础架构，因为我们不需要此简单的应用程序
         MonitoringHelper.initMocks();
 
         // initializes groovy filesystem poller
+        // 初始化groovy文件系统轮询器
         initGroovyFilterManager();
 
         // initializes a few java filter examples
+        // 初始化一些Java过滤器示例
         initJavaFilters();
     }
 
@@ -51,11 +60,19 @@ public class StartServer implements ServletContextListener {
     }
 
     private void initGroovyFilterManager() {
+        /**
+         * 设置脚本编译器 为Groovy
+         */
         FilterLoader.getInstance().setCompiler(new GroovyCompiler());
 
         String scriptRoot = System.getProperty("zuul.filter.root", "");
-        if (scriptRoot.length() > 0) scriptRoot = scriptRoot + File.separator;
+        if (scriptRoot.length() > 0) {
+            scriptRoot = scriptRoot + File.separator;
+        }
         try {
+            /**
+             * 设置文件过滤器,并加载 Zuul Groovy 的过滤器
+             */
             FilterFileManager.setFilenameFilter(new GroovyFileFilter());
             FilterFileManager.init(5, scriptRoot + "pre", scriptRoot + "route", scriptRoot + "post");
         } catch (Exception e) {

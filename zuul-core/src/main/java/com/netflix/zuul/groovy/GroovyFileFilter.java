@@ -24,6 +24,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.regex.Pattern;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -35,13 +36,13 @@ import static org.mockito.Mockito.when;
  * @author Mikey Cohen
  * Date: 5/30/13
  * Time: 11:47 AM
- *
  */
 public class GroovyFileFilter implements FilenameFilter {
+    public static final Pattern fileNamePattern = Pattern.compile(".*(\\.groovy)$");
 
     @Override
     public boolean accept(File dir, String name) {
-        return name.endsWith(".groovy");
+        return fileNamePattern.matcher(name).matches();
     }
 
 

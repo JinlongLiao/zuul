@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.URL;
@@ -39,10 +40,14 @@ import static org.mockito.Mockito.*;
  * This class manages the directory polling for changes and new Groovy filters.
  * Polling interval and directories are specified in the initialization of the class, and a poller will check
  * for changes and additions.
+ * <p>
+ * 此类管理目录轮询以查找更改和新的Groovy过滤器。
+ * 轮询间隔和目录是在类的初始化中指定的，轮询器将检查
+ * 是否有更改和添加。
  *
  * @author Mikey Cohen
- *         Date: 12/7/11
- *         Time: 12:09 PM
+ * Date: 12/7/11
+ * Time: 12:09 PM
  */
 public class FilterFileManager {
 
@@ -56,6 +61,12 @@ public class FilterFileManager {
     static FilenameFilter FILENAME_FILTER;
 
     static FilterFileManager INSTANCE;
+    static final FileFilter filter = new FileFilter() {
+        @Override
+        public boolean accept(File pathname) {
+            return pathname.isDirectory();
+        }
+    };
 
     private FilterFileManager() {
     }
@@ -67,18 +78,26 @@ public class FilterFileManager {
     /**
      * Initialized the GroovyFileManager.
      *
-     * @param pollingIntervalSeconds the polling interval in Seconds
-     * @param directories            Any number of paths to directories to be polled may be specified
+     * @param pollingIntervalSeconds the polling interval in Seconds 轮训时间（S）
+     * @param directories            Any number of paths to directories to be polled may be specified Groovy 过滤器路径
      * @throws IOException
      * @throws IllegalAccessException
      * @throws InstantiationException
      */
     public static void init(int pollingIntervalSeconds, String... directories) throws Exception, IllegalAccessException, InstantiationException {
-        if (INSTANCE == null) INSTANCE = new FilterFileManager();
+        if (INSTANCE == null) {
+            INSTANCE = new FilterFileManager();
+        }
 
         INSTANCE.aDirectories = directories;
         INSTANCE.pollingIntervalSeconds = pollingIntervalSeconds;
+        /**
+         * 读取文件
+         */
         INSTANCE.manageFiles();
+        /**
+         * 开启新线程 定时查询
+         */
         INSTANCE.startPoller();
 
     }
@@ -101,6 +120,7 @@ public class FilterFileManager {
 
     void startPoller() {
         poller = new Thread("GroovyFilterFileManagerPoller") {
+            @Override
             public void run() {
                 while (bRunning) {
                     try {
@@ -123,7 +143,7 @@ public class FilterFileManager {
      * @return a File representing the directory path
      */
     public File getDirectory(String sPath) {
-        File  directory = new File(sPath);
+        File directory = new File(sPath);
         if (!directory.isDirectory()) {
             URL resource = FilterFileManager.class.getClassLoader().getResource(sPath);
             try {
@@ -140,6 +160,7 @@ public class FilterFileManager {
 
     /**
      * Returns a List<File> of all Files from all polled directories
+     * 存在 文件夹下不能包涵子文件夹 问题
      *
      * @return
      */
@@ -148,9 +169,10 @@ public class FilterFileManager {
         for (String sDirectory : aDirectories) {
             if (sDirectory != null) {
                 File directory = getDirectory(sDirectory);
-                File[] aFiles = directory.listFiles(FILENAME_FILTER);
+//                File[] aFiles = directory.listFiles(FILENAME_FILTER);
+                List<File> aFiles = listFiles(FILENAME_FILTER, directory);
                 if (aFiles != null) {
-                    list.addAll(Arrays.asList(aFiles));
+                    list.addAll(aFiles);
                 }
             }
         }
@@ -158,7 +180,28 @@ public class FilterFileManager {
     }
 
     /**
+     * 得到所有的文件下的 符合要求的文件
+     *
+     * @param filenameFilter
+     * @param directory
+     * @return List<File>
+     */
+    private List<File> listFiles(FilenameFilter filenameFilter, File directory) {
+        List<File> fileList = new ArrayList<>(Arrays.asList(directory.listFiles(filenameFilter)));
+
+        final File[] files = directory.listFiles(filter);
+        if (files != null && files.length > 0) {
+            for (File file : files) {
+                fileList.addAll(this.listFiles(filenameFilter, file));
+            }
+        }
+        return fileList;
+    }
+
+    /**
      * puts files into the FilterLoader. The FilterLoader will only addd new or changed filters
+     * <p>
+     * 将文件放入FilterLoader。 FilterLoader将仅添加新的或更改的过滤器
      *
      * @param aFiles a List<File>
      * @throws IOException

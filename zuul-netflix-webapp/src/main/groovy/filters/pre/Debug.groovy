@@ -37,6 +37,7 @@ class DebugFilter extends ZuulFilter {
         return 1
     }
 
+    @Override
     boolean shouldFilter() {
 
         if ("true".equals(RequestContext.currentContext.getRequest().getParameter(debugParameter.get()))) return true;
@@ -44,6 +45,7 @@ class DebugFilter extends ZuulFilter {
 
     }
 
+    @Override
     Object run() {
         RequestContext.getCurrentContext().setDebugRequest(true)
         RequestContext.getCurrentContext().setDebugRouting(true)

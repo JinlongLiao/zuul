@@ -41,8 +41,8 @@ import static org.mockito.Mockito.*;
  * Core Zuul servlet which intializes and orchestrates zuulFilter execution
  *
  * @author Mikey Cohen
- *         Date: 12/23/11
- *         Time: 10:44 AM
+ * Date: 12/23/11
+ * Time: 10:44 AM
  */
 public class ZuulServlet extends HttpServlet {
 
@@ -60,14 +60,32 @@ public class ZuulServlet extends HttpServlet {
         zuulRunner = new ZuulRunner(bufferReqs);
     }
 
+    /**
+     * <pre>
+     * 全部正常
+     *  pre->route->post->end
+     * pre 异常
+     *  pre->error->post->end
+     * route 异常
+     *  pre->route->error->post->end
+     * post 异常
+     *  pre->route->post->error->end
+     * </pre>
+     */
     @Override
     public void service(javax.servlet.ServletRequest servletRequest, javax.servlet.ServletResponse servletResponse) throws ServletException, IOException {
         try {
+            /**
+             * 初始化 ZuulRunner
+             */
             init((HttpServletRequest) servletRequest, (HttpServletResponse) servletResponse);
 
             // Marks this request as having passed through the "Zuul engine", as opposed to servlets
             // explicitly bound in web.xml, for which requests will not have the same data attached
             RequestContext context = RequestContext.getCurrentContext();
+            /**
+             * 设置使用ZUUL
+             */
             context.setZuulEngineRan();
 
             try {

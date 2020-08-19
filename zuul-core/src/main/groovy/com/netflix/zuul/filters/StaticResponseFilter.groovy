@@ -53,6 +53,7 @@ public abstract class StaticResponseFilter extends ZuulFilter {
         return 0
     }
 
+    @Override
     boolean shouldFilter() {
         String path = RequestContext.currentContext.getRequest().getRequestURI()
         if (checkPath(path)) return true

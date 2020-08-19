@@ -50,7 +50,6 @@ import javax.servlet.http.HttpServletResponse
 import javax.ws.rs.core.MultivaluedMap
 import java.util.zip.GZIPInputStream
 
-import static HttpRequest.Verb
 
 class ZuulNFRequest extends ZuulFilter {
 
@@ -68,17 +67,19 @@ class ZuulNFRequest extends ZuulFilter {
         return 10
     }
 
+    @Override
     boolean shouldFilter() {
         return NFRequestContext.currentContext.getRouteHost() == null && RequestContext.currentContext.sendZuulResponse()
     }
 
+    @Override
     Object run() {
         NFRequestContext context = NFRequestContext.currentContext
         HttpServletRequest request = context.getRequest();
 
         MultivaluedMap<String, String> headers = buildZuulRequestHeaders(request)
         MultivaluedMap<String, String> params = buildZuulRequestQueryParams(request)
-        Verb verb = getVerb(request);
+        HttpRequest.Verb verb = getVerb(request);
         Object requestEntity = getRequestBody(request)
         IClient restClient = ClientFactory.getNamedClient(context.getRouteVIP());
 
@@ -95,8 +96,7 @@ class ZuulNFRequest extends ZuulFilter {
     }
 
 
-
-    void debug(RestClient restClient, Verb verb, uri, MultivaluedMap<String, String> headers, MultivaluedMap<String, String> params, InputStream requestEntity) {
+    void debug(RestClient restClient, HttpRequest.Verb verb, uri, MultivaluedMap<String, String> headers, MultivaluedMap<String, String> params, InputStream requestEntity) {
 
         if (Debug.debugRequest()) {
 
@@ -128,8 +128,7 @@ class ZuulNFRequest extends ZuulFilter {
     }
 
 
-
-    def HttpResponse forward(RestClient restClient, Verb verb, uri, MultivaluedMap<String, String> headers, MultivaluedMap<String, String> params, InputStream requestEntity) {
+    def HttpResponse forward(RestClient restClient, HttpRequest.Verb verb, uri, MultivaluedMap<String, String> headers, MultivaluedMap<String, String> params, InputStream requestEntity) {
         debug(restClient, verb, uri, headers, params, requestEntity)
 
 //        restClient.apacheHttpClient.params.setVirtualHost(headers.getFirst("host"))
@@ -175,7 +174,6 @@ class ZuulNFRequest extends ZuulFilter {
     }
 
 
-
     def MultivaluedMap<String, String> buildZuulRequestQueryParams(HttpServletRequest request) {
 
         Map<String, List<String>> map = HTTPRequestUtils.getInstance().getQueryParams()
@@ -218,13 +216,12 @@ class ZuulNFRequest extends ZuulFilter {
     }
 
 
-
-    Verb getVerb(HttpServletRequest request) {
+    HttpRequest.Verb getVerb(HttpServletRequest request) {
         String sMethod = request.getMethod();
         return getVerb(sMethod);
     }
 
-    Verb getVerb(String sMethod) {
+    HttpRequest.Verb getVerb(String sMethod) {
         if (sMethod == null) return Verb.GET;
         sMethod = sMethod.toLowerCase();
         if (sMethod.equals("post")) return Verb.POST;
@@ -358,7 +355,6 @@ class ZuulNFRequest extends ZuulFilter {
         }
 
 
-
         @Test
         public void testHeaderResponse() {
 
@@ -427,7 +423,6 @@ class ZuulNFRequest extends ZuulFilter {
             request = Mockito.spy(request)
 
 
-
             Map<String, Collection<String>> headers = new HashMap<>();
             headers.put("test", ["test"])
             headers.put("content-length", ["100"])
@@ -458,7 +453,7 @@ class ZuulNFRequest extends ZuulFilter {
         public void testGetVerb() {
 
             ZuulNFRequest request = new ZuulNFRequest()
-            Verb verb = request.getVerb("get")
+            HttpRequest.Verb verb = request.getVerb("get")
             Assert.assertEquals(Verb.GET, verb)
             verb = request.getVerb("Get")
             Assert.assertEquals(Verb.GET, verb)

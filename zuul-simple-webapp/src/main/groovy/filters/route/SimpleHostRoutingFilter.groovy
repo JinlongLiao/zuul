@@ -118,6 +118,7 @@ class SimpleHostRoutingFilter extends ZuulFilter {
         return 100
     }
 
+    @Override
     boolean shouldFilter() {
         return RequestContext.getCurrentContext().getRouteHost() != null && RequestContext.getCurrentContext().sendZuulResponse()
     }
@@ -159,6 +160,7 @@ class SimpleHostRoutingFilter extends ZuulFilter {
         return builder.build()
     }
 
+    @Override
     Object run() {
         HttpServletRequest request = RequestContext.getCurrentContext().getRequest();
         Header[] headers = buildZuulRequestHeaders(request)

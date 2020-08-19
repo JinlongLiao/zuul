@@ -45,6 +45,7 @@ class Routing extends ZuulFilter {
         return "pre"
     }
 
+    @Override
     boolean shouldFilter() {
         return true
     }
@@ -55,6 +56,7 @@ class Routing extends ZuulFilter {
         FilterProcessor.instance.runFilters("static")
     }
 
+    @Override
     Object run() {
 
         staticRouting() //runs the static Zuul

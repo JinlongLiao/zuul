@@ -39,7 +39,9 @@ public abstract class CounterFactory {
      * @return a <code>CounterFactory</code> value
      */
     public static final CounterFactory instance() {
-        if(INSTANCE == null) throw new IllegalStateException(String.format("%s not initialized", CounterFactory.class.getSimpleName()));
+        if (INSTANCE == null) {
+            throw new IllegalStateException(String.format("%s not initialized", CounterFactory.class.getSimpleName()));
+        }
         return INSTANCE;
     }
 

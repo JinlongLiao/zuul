@@ -37,6 +37,8 @@ import static org.mockito.Mockito.*;
 /**
  * This class initializes servlet requests and responses into the RequestContext and wraps the FilterProcessor calls
  * to preRoute(), route(),  postRoute(), and error() methods
+ * 此类将Servlet请求和响应初始化到RequestContext中，并将FilterProcessor调用*
+ * 包装为preRoute（），route（），postRoute（）和error（）方法
  *
  * @author mikey@netflix.com
  * @version 1.0
@@ -53,7 +55,6 @@ public class ZuulRunner {
     }
 
     /**
-     *
      * @param bufferRequests - whether to wrap the ServletRequest in HttpServletRequestWrapper and buffer the body.
      */
     public ZuulRunner(boolean bufferRequests) {
@@ -69,6 +70,9 @@ public class ZuulRunner {
     public void init(HttpServletRequest servletRequest, HttpServletResponse servletResponse) {
 
         RequestContext ctx = RequestContext.getCurrentContext();
+        /**
+         * 将Request&Response 存入线程缓存中
+         */
         if (bufferRequests) {
             ctx.setRequest(new HttpServletRequestWrapper(servletRequest));
         } else {

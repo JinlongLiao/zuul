@@ -51,6 +51,7 @@ public abstract class SurgicalDebugFilter extends ZuulFilter {
         return 99
     }
 
+    @Override
     boolean shouldFilter() {
 
         DynamicBooleanProperty debugFilterShutoff = DynamicPropertyFactory.getInstance().getBooleanProperty(ZuulConstants.ZUUL_DEBUGFILTERS_DISABLED, false);

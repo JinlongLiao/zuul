@@ -37,6 +37,7 @@ import static org.mockito.Mockito.when
  */
 class Options extends StaticResponseFilter {
 
+    @Override
     boolean shouldFilter() {
         String method = RequestContext.currentContext.getRequest() getMethod();
         if (method.equalsIgnoreCase("options")) return true;

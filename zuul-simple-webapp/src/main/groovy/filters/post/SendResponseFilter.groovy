@@ -53,12 +53,14 @@ class SendResponseFilter extends ZuulFilter {
         return 1000
     }
 
+    @Override
     boolean shouldFilter() {
         return !RequestContext.getCurrentContext().getZuulResponseHeaders().isEmpty() ||
                 RequestContext.getCurrentContext().getResponseDataStream() != null ||
                 RequestContext.getCurrentContext().responseBody != null
     }
 
+    @Override
     Object run() {
         addResponseHeaders()
         writeResponse()

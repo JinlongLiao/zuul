@@ -49,10 +49,12 @@ class RequestEventInfoCollectorFilter extends ZuulFilter {
         return "post"
     }
 
+    @Override
     boolean shouldFilter() {
         return true
     }
 
+    @Override
     Object run() {
         NFRequestContext ctx = NFRequestContext.getCurrentContext();
         final Map<String, Object> event = ctx.getEventProperties();

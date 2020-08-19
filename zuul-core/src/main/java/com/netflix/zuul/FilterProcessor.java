@@ -39,13 +39,16 @@ import static org.mockito.Mockito.*;
 
 /**
  * This the the core class to execute filters.
+ * 过滤器执行器
  *
  * @author Mikey Cohen
- *         Date: 10/24/11
- *         Time: 12:47 PM
+ * Date: 10/24/11
+ * Time: 12:47 PM
  */
 public class FilterProcessor {
-
+    /**
+     * 懒汉单例
+     */
     static FilterProcessor INSTANCE = new FilterProcessor();
     protected static final Logger logger = LoggerFactory.getLogger(FilterProcessor.class);
 
@@ -65,6 +68,7 @@ public class FilterProcessor {
 
     /**
      * sets a singleton processor in case of a need to override default behavior
+     * 允许自定的处理器 覆盖默认
      *
      * @param processor
      */
@@ -180,7 +184,7 @@ public class FilterProcessor {
         try {
             long ltime = System.currentTimeMillis();
             filterName = filter.getClass().getSimpleName();
-            
+
             RequestContext copy = null;
             Object o = null;
             Throwable t = null;
@@ -189,7 +193,7 @@ public class FilterProcessor {
                 Debug.addRoutingDebug("Filter " + filter.filterType() + " " + filter.filterOrder() + " " + filterName);
                 copy = ctx.copy();
             }
-            
+
             ZuulFilterResult result = filter.runFilter();
             ExecutionStatus s = result.getStatus();
             execTime = System.currentTimeMillis() - ltime;
@@ -210,8 +214,10 @@ public class FilterProcessor {
                 default:
                     break;
             }
-            
-            if (t != null) throw t;
+
+            if (t != null) {
+                throw t;
+            }
 
             usageNotifier.notify(filter, s);
             return o;

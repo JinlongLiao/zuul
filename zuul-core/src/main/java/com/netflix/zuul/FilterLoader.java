@@ -44,12 +44,16 @@ import static org.mockito.Mockito.when;
 /**
  * This class is one of the core classes in Zuul. It compiles, loads from a File, and checks if source code changed.
  * It also holds ZuulFilters by filterType.
+ * 加载过滤器
  *
  * @author Mikey Cohen
- *         Date: 11/3/11
- *         Time: 1:59 PM
+ * Date: 11/3/11
+ * Time: 1:59 PM
  */
 public class FilterLoader {
+    /**
+     * 懒汉单例
+     */
     final static FilterLoader INSTANCE = new FilterLoader();
 
     private static final Logger LOG = LoggerFactory.getLogger(FilterLoader.class);
@@ -62,11 +66,12 @@ public class FilterLoader {
     private FilterRegistry filterRegistry = FilterRegistry.instance();
 
     static DynamicCodeCompiler COMPILER;
-    
+
     static FilterFactory FILTER_FACTORY = new DefaultFilterFactory();
 
     /**
      * Sets a Dynamic Code Compiler
+     * 设置动态编译器 ，（相同Groovy 动态语言可以实时改变后 加载入JVM 来动态改变过滤器）
      *
      * @param compiler
      */
@@ -81,13 +86,13 @@ public class FilterLoader {
 
     /**
      * Sets a FilterFactory
-     * 
+     *
      * @param factory
      */
     public void setFilterFactory(FilterFactory factory) {
         FILTER_FACTORY = factory;
     }
-    
+
     /**
      * @return Singleton FilterLoader
      */
@@ -136,6 +141,10 @@ public class FilterLoader {
     /**
      * From a file this will read the ZuulFilter source code, compile it, and add it to the list of current filters
      * a true response means that it was successful.
+     * <p>
+     * <p>
+     * 从文件中将读取ZuulFilter源代码，对其进行编译，然后将其添加到当前过滤器列表中
+     * 真实的响应表示它已成功。
      *
      * @param file
      * @return true if the filter in file successfully read, compiled, verified and added to Zuul
@@ -145,6 +154,9 @@ public class FilterLoader {
      */
     public boolean putFilter(File file) throws Exception {
         String sName = file.getAbsolutePath() + file.getName();
+        /**
+         * 之前已加载，且文件的修改时间与之前不同，重新载入 （Groovy的特权）
+         */
         if (filterClassLastModified.get(sName) != null && (file.lastModified() != filterClassLastModified.get(sName))) {
             LOG.debug("reloading filter " + sName);
             filterRegistry.remove(sName);
@@ -152,12 +164,27 @@ public class FilterLoader {
         ZuulFilter filter = filterRegistry.get(sName);
         if (filter == null) {
             Class clazz = COMPILER.compile(file);
+            /**
+             * 非抽象类
+             */
             if (!Modifier.isAbstract(clazz.getModifiers())) {
+                /**
+                 * 实例化
+                 * 默认 Class.newInstance()
+                 */
                 filter = (ZuulFilter) FILTER_FACTORY.newInstance(clazz);
+                /**
+                 * 写入缓存
+                 */
                 List<ZuulFilter> list = hashFiltersByType.get(filter.filterType());
                 if (list != null) {
-                    hashFiltersByType.remove(filter.filterType()); //rebuild this list
+                    //rebuild this list
+                    hashFiltersByType.remove(filter.filterType());
                 }
+                /**
+                 * （针对脚本文件Groovy 特定的）
+                 *记录文件绝对位置与文件修改时间
+                 */
                 filterRegistry.put(file.getAbsolutePath() + file.getName(), filter);
                 filterClassLastModified.put(sName, file.lastModified());
                 return true;
@@ -169,6 +196,7 @@ public class FilterLoader {
 
     /**
      * Returns a list of filters by the filterType specified
+     * 先从缓存中获取，若为空，从注册器中加载 并写入缓存
      *
      * @param filterType
      * @return a List<ZuulFilter>
@@ -210,10 +238,12 @@ public class FilterLoader {
             return 0;
         }
 
+        @Override
         public boolean shouldFilter() {
             return false;
         }
 
+        @Override
         public Object run() {
             return null;
         }
@@ -262,7 +292,7 @@ public class FilterLoader {
             filters.add(filter);
             when(registry.getAllFilters()).thenReturn(filters);
 
-            List< ZuulFilter > list = loader.getFiltersByType("test");
+            List<ZuulFilter> list = loader.getFiltersByType("test");
             assertTrue(list != null);
             assertTrue(list.size() == 1);
             ZuulFilter filter = list.get(0);
